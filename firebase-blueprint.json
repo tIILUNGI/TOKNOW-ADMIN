@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user with role and subscription info",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "editor", "viewer"] },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "subscriptionId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastLogin": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role", "status", "createdAt"]
+    },
+    "Plan": {
+      "title": "Subscription Plan",
+      "description": "Available subscription tiers",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "currency": { "type": "string" },
+        "billingCycle": { "type": "string", "enum": ["monthly", "yearly"] },
+        "features": { "type": "array" },
+        "tier": { "type": "string", "enum": ["free", "pro", "enterprise"] }
+      },
+      "required": ["name", "price", "billingCycle", "tier"]
+    },
+    "Subscription": {
+      "title": "User Subscription",
+      "description": "Records of user subscriptions",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "planId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "expired", "cancelled", "trialing"] },
+        "currentPeriodStart": { "type": "string", "format": "date-time" },
+        "currentPeriodEnd": { "type": "string", "format": "date-time" },
+        "cancelAtPeriodEnd": { "type": "boolean" }
+      },
+      "required": ["userId", "planId", "status", "currentPeriodStart", "currentPeriodEnd"]
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": "User",
+      "description": "Collection of system users"
+    },
+    "plans": {
+      "schema": "Plan",
+      "description": "Collection of subscription plans"
+    },
+    "subscriptions": {
+      "schema": "Subscription",
+      "description": "Collection of active and past subscriptions"
+    }
+  }
+}

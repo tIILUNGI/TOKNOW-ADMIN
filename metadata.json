@@ -1,0 +1,6 @@
+{
+  "name": "To-Know Subscription Manager",
+  "description": "Admin dashboard for managing users, plans, and subscriptions for the To-Know system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
