@@ -14,8 +14,8 @@ export function formatDate(date: string | Date) {
 }
 
 export function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("pt-AO", {
     style: "currency",
-    currency: "BRL",
+    currency: "AOA",
   }).format(amount);
 }

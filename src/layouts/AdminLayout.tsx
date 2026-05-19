@@ -18,7 +18,7 @@ export const AdminLayout = ({ onLogout }: AdminLayoutProps) => {
         onLogout={onLogout}
       />
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        <Header setIsSidebarOpen={setIsSidebarOpen} />
+        <Header setIsSidebarOpen={setIsSidebarOpen} onLogout={onLogout} />
         <main className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="p-6 lg:p-8">
             <Outlet />

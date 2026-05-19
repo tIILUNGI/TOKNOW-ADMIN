@@ -1,19 +1,23 @@
 import { useState, useRef, useEffect } from "react";
-import { Activity, Bell, User, Settings, LogOut, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Activity, Bell, User, Settings, LogOut, FileText, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface HeaderProps {
   setIsSidebarOpen: (isOpen: boolean) => void;
+  onLogout: () => void;
 }
 
-export const Header = ({ setIsSidebarOpen }: HeaderProps) => {
+export const Header = ({ setIsSidebarOpen, onLogout }: HeaderProps) => {
+  const navigate = useNavigate();
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  
+  const [saved, setSaved] = useState(false);
+
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  // Click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
@@ -27,6 +31,13 @@ export const Header = ({ setIsSidebarOpen }: HeaderProps) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleLogoutClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setShowProfile(false);
+    onLogout();
+  };
+
   return (
     <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-30 px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -39,12 +50,12 @@ export const Header = ({ setIsSidebarOpen }: HeaderProps) => {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="text-slate-400 hover:text-slate-600 transition-colors hidden sm:block">
+        <button className="text-slate-400 hover:text-slate-600 transition-colors hidden sm:block" title="Selecionar Entidade">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
           </svg>
         </button>
-        <button className="text-slate-400 hover:text-slate-600 transition-colors hidden sm:block">
+        <button className="text-slate-400 hover:text-slate-600 transition-colors hidden sm:block" title="Escolher Modelo">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
           </svg>
@@ -52,7 +63,7 @@ export const Header = ({ setIsSidebarOpen }: HeaderProps) => {
 
         {/* Notificações */}
         <div className="relative" ref={notifRef}>
-          <button 
+          <button
             onClick={() => {
               setShowNotifications(!showNotifications);
               setShowProfile(false);
@@ -60,12 +71,12 @@ export const Header = ({ setIsSidebarOpen }: HeaderProps) => {
             className="text-slate-400 hover:text-slate-600 transition-colors relative p-1"
           >
             <Bell className="size-5" />
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full" />
           </button>
 
           <AnimatePresence>
             {showNotifications && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -95,10 +106,10 @@ export const Header = ({ setIsSidebarOpen }: HeaderProps) => {
             )}
           </AnimatePresence>
         </div>
-        
+
         {/* Perfil */}
         <div className="relative" ref={profileRef}>
-          <div 
+          <div
             onClick={() => {
               setShowProfile(!showProfile);
               setShowNotifications(false);
@@ -116,7 +127,7 @@ export const Header = ({ setIsSidebarOpen }: HeaderProps) => {
 
           <AnimatePresence>
             {showProfile && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -127,17 +138,29 @@ export const Header = ({ setIsSidebarOpen }: HeaderProps) => {
                   <p className="text-sm font-bold text-slate-800">admin@toknow.com</p>
                   <p className="text-xs text-slate-500">Administrador Global</p>
                 </div>
-                <button className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
+                <button
+                  onClick={() => { setShowProfile(false); navigate("/profile"); }}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors"
+                >
                   <User className="w-4 h-4" /> O Meu Perfil
                 </button>
-                <button className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
+                <button
+                  onClick={() => { setShowProfile(false); navigate("/settings"); }}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors"
+                >
                   <Settings className="w-4 h-4" /> Definições de Conta
                 </button>
-                <button className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors mb-1">
-                  <FileText className="w-4 h-4" /> Faturação
+                <button
+                  onClick={() => { setShowProfile(false); navigate("/billing"); }}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors mb-1"
+                >
+                  <CreditCard className="w-4 h-4" /> Faturação
                 </button>
                 <div className="border-t border-slate-100 mt-1 pt-1">
-                  <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors">
+                  <button
+                    onClick={handleLogoutClick}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                  >
                     <LogOut className="w-4 h-4" /> Terminar Sessão
                   </button>
                 </div>
@@ -145,8 +168,22 @@ export const Header = ({ setIsSidebarOpen }: HeaderProps) => {
             )}
           </AnimatePresence>
         </div>
-
       </div>
+
+      {/* Toast notification */}
+      <AnimatePresence>
+        {saved && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-6 right-6 bg-emerald-600 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium z-50"
+          >
+            Guardado com sucesso!
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

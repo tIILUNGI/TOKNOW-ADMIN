@@ -18,24 +18,28 @@ export const Dashboard = () => {
       total: "2.405",
       subtitle: "Perfis ativos na plataforma",
       icon: Users,
+      path: "/users",
     },
     {
       title: "MRR Atual",
-      total: "€45.2K",
+      total: "Kz45.2M",
       subtitle: "Crescimento de 12% este mês",
       icon: TrendingUp,
+      path: "/plans",
     },
     {
       title: "System Health",
       total: "99.9%",
       subtitle: "APIs e Base de Dados estáveis",
       icon: Server,
+      path: "/health",
     },
     {
       title: "Avaliações KYC / 360",
       total: "128",
       subtitle: "Auditorias pendentes de análise",
       icon: FileCheck,
+      path: "/evaluations",
     },
   ];
 
@@ -95,83 +99,70 @@ export const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {topStats.map((stat, i) => (
-          <div
+          <button
             key={i}
-            className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full"
+            onClick={() => navigate(stat.path)}
+            className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full text-left hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group"
           >
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-sm font-semibold text-slate-700">
+              <h3 className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">
                 {stat.title}
               </h3>
               <stat.icon className="size-4 text-blue-500" />
             </div>
             <div className="mt-auto">
-              <p className="text-3xl font-bold text-slate-900 mb-1">
-                {stat.total}
-              </p>
+              <p className="text-3xl font-bold text-slate-900 mb-1">{stat.total}</p>
               <p className="text-xs text-slate-400">{stat.subtitle}</p>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
       <div>
-        <h2 className="text-lg font-bold text-slate-800 mb-4">
-          Módulos de Administração
-        </h2>
+        <h2 className="text-lg font-bold text-slate-800 mb-4">Módulos de Administração</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
           {modules.map((mod, i) => (
-            <div
+            <button
               key={i}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden"
+              onClick={() => navigate(mod.path)}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden text-left hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group w-full"
             >
               <div className="p-6 pb-4 flex-1">
                 <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-4">
                   <mod.icon className="size-5 text-blue-600" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900 mb-2">
+                <h3 className="text-base font-bold text-slate-900 mb-2 group-hover:text-blue-700 transition-colors">
                   {mod.title}
                 </h3>
-                <p className="text-xs text-slate-500 leading-relaxed mb-6 h-12">
-                  {mod.desc}
-                </p>
+                <p className="text-xs text-slate-500 leading-relaxed mb-6 h-12">{mod.desc}</p>
 
                 <div className="flex justify-between text-center px-2">
                   <div>
-                    <p className="text-lg font-bold text-slate-800 leading-none">
-                      {mod.total}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-1">
-                      Total
-                    </p>
+                    <p className="text-lg font-bold text-slate-800 leading-none">{mod.total}</p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-1">Total</p>
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-amber-500 leading-none">
-                      {mod.pendente}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-1">
-                      Pendente/Latência
-                    </p>
+                    <p className="text-lg font-bold text-amber-500 leading-none">{mod.pendente}</p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-1">Pendente/Latência</p>
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-emerald-500 leading-none">
-                      {mod.ativo}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-1">
-                      Ativo/Status
-                    </p>
+                    <p className="text-lg font-bold text-emerald-500 leading-none">{mod.ativo}</p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-1">Ativo/Status</p>
                   </div>
                 </div>
               </div>
               <div className="p-4 pt-0">
-                <button 
-                  onClick={() => navigate(mod.path)}
-                  className="w-full py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(mod.path);
+                  }}
+                  className="w-full py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-700 transition-colors flex items-center justify-center gap-2 pointer-events-none"
                 >
                   {mod.action} <ChevronRight className="size-4 text-slate-400" />
                 </button>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>

@@ -1,11 +1,14 @@
 import { useState, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { Shield, ChevronRight, Activity, BarChart2, CreditCard, Users } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
 }
 
 export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,8 +16,6 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
   const handleEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Autenticação local simples
     setTimeout(() => {
       if (email && password) {
         onLoginSuccess();
@@ -90,12 +91,13 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
                   <label className="text-sm font-medium text-slate-700 block">
                     Palavra-passe
                   </label>
-                  <a
-                    href="#"
-                    className="text-sm text-blue-600 font-medium hover:underline"
+                  <button
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
+                    className="text-sm text-blue-600 font-medium hover:underline cursor-pointer bg-transparent border-none"
                   >
-                    Esqueceu a palavra-passe?
-                  </a>
+                     Esqueceu a palavra-passe?
+                  </button>
                 </div>
                 <div className="relative">
                   <input
@@ -139,9 +141,14 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
               </button>
             </form>
 
-            <div className="mt-6 text-center text-sm text-slate-500">
-              Não tem uma conta? <a href="#" className="text-blue-600 font-medium hover:underline">Criar conta</a>
-            </div>
+              Não tem uma conta?{" "}
+              <button
+                type="button"
+                onClick={() => navigate("/create-account")}
+                className="text-blue-600 font-medium hover:underline cursor-pointer bg-transparent border-none p-0"
+              >
+                Criar conta
+              </button>
           </div>
 
           <div className="text-center mt-12 text-xs text-slate-400 font-medium">
