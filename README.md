@@ -2,19 +2,18 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# TOKNOW Admin Dashboard
 
-This contains everything you need to run your app locally.
+Plataforma de Gestão Administrativa do ecossistema To-Know.
 
-View your app in AI Studio: https://ai.studio/apps/c27f0628-fe01-47e2-b705-1555eecf2325
+**URL do Sistema:** [https://admin.toknow.ilungi.com](https://admin.toknow.ilungi.com)
 
-## Run Locally
+## Executar Localmente
 
-**Prerequisites:**  Node.js
+**Pré-requisitos:** Node.js
 
-
-1. Install dependencies:
+1. Instalar dependências:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Configure as variáveis de ambiente necessárias em `.env` se aplicável.
+3. Iniciar o servidor local:
    `npm run dev`
