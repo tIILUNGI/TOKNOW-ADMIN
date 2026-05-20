@@ -1,26 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreditCard, Plus, Search, Filter, X, Trash2, Save } from "lucide-react";
+import { adminFetch } from "../lib/api";
 
 interface PlanType {
   id: number;
   name: string;
   price: number;
-  users: number;
+  maxUsers: number;
   status: string;
+  durationDays?: number;
 }
 
 export const Plans = () => {
-  const [plans, setPlans] = useState<PlanType[]>([
-    { id: 1, name: "Básico", price: 19000, users: 10, status: "Ativo" },
-    { id: 2, name: "Pro", price: 49000, users: 50, status: "Ativo" },
-    { id: 3, name: "Enterprise", price: 0, users: 0, status: "Inativo" },
-  ]);
+  const [plans, setPlans] = useState<PlanType[]>([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PlanType | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<PlanType | null>(null);
-  const [form, setForm] = useState({ name: "", price: "", users: "", status: "Ativo" });
+  const [form, setForm] = useState({ name: "", price: "", users: "", durationDays: "30", status: "Ativo" });
   const [filterStatus, setFilterStatus] = useState<string>("Todos");
+
+  const fetchPlans = async () => {
+    try {
+      const data = await adminFetch<PlanType[]>("/subscription-plans");
+      setPlans(data);
+    } catch (err) {
+      console.error("Erro ao carregar planos:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
 
   const formatKz = (price: number) =>
     price > 0
@@ -35,35 +46,58 @@ export const Plans = () => {
 
   const openCreate = () => {
     setEditingPlan(null);
-    setForm({ name: "", price: "", users: "", status: "Ativo" });
+    setForm({ name: "", price: "", users: "", durationDays: "30", status: "Ativo" });
     setShowModal(true);
   };
 
   const openEdit = (p: PlanType) => {
     setEditingPlan(p);
-    setForm({ name: p.name, price: String(p.price), users: String(p.users), status: p.status });
+    setForm({ name: p.name, price: String(p.price), users: String(p.maxUsers), durationDays: String(p.durationDays ?? 30), status: p.status });
     setShowModal(true);
   };
 
-  const savePlan = () => {
+  const savePlan = async () => {
     if (!form.name.trim()) return;
-    const priceVal = form.price === "Contactar" ? 0 : Number(form.price.replace(/\D/g, "")) || 0;
+    const priceVal = form.price === "Contactar" ? 0 : Number(form.price.toString().replace(/\D/g, "")) || 0;
     const usersVal = form.users === "Ilimitado" ? 0 : Number(form.users) || 0;
-    if (editingPlan) {
-      setPlans(
-        plans.map((p) =>
-          p.id === editingPlan.id ? { ...p, name: form.name, price: priceVal, users: usersVal, status: form.status } : p
-        )
-      );
-    } else {
-      setPlans([...plans, { id: Date.now(), name: form.name, price: priceVal, users: usersVal, status: form.status }]);
+
+    const payload = {
+      name: form.name,
+      price: priceVal,
+      maxUsers: usersVal,
+      durationDays: Number(form.durationDays) || 30,
+      status: form.status,
+    };
+
+    try {
+      if (editingPlan) {
+        await adminFetch(`/subscription-plans/${editingPlan.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await adminFetch("/subscription-plans", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      }
+      fetchPlans();
+      setShowModal(false);
+    } catch (err) {
+      console.error("Erro ao guardar plano:", err);
     }
-    setShowModal(false);
   };
 
-  const removePlan = (id: number) => {
-    setPlans(plans.filter((p) => p.id !== id));
-    setDeleteConfirm(null);
+  const removePlan = async (id: number) => {
+    try {
+      await adminFetch(`/subscription-plans/${id}`, {
+        method: "DELETE",
+      });
+      fetchPlans();
+      setDeleteConfirm(null);
+    } catch (err) {
+      console.error("Erro ao remover plano:", err);
+    }
   };
 
   return (
@@ -108,6 +142,7 @@ export const Plans = () => {
             <tr>
               <th className="px-4 py-2">Nome</th>
               <th className="px-4 py-2">Preço</th>
+              <th className="px-4 py-2">Duração</th>
               <th className="px-4 py-2">Utilizadores</th>
               <th className="px-4 py-2">Estado</th>
               <th className="px-4 py-2 text-right">Ações</th>
@@ -118,7 +153,8 @@ export const Plans = () => {
               <tr key={plan.id} className="hover:bg-slate-50/80 transition-colors">
                 <td className="px-4 py-2 font-medium text-slate-800">{plan.name}</td>
                 <td className="px-4 py-2 text-slate-700">{formatKz(plan.price)}</td>
-                <td className="px-4 py-2 text-slate-700">{plan.users > 0 ? plan.users : "Ilimitado"}</td>
+                <td className="px-4 py-2 text-slate-700">{plan.durationDays ?? 30} dias</td>
+                <td className="px-4 py-2 text-slate-700">{plan.maxUsers > 0 ? plan.maxUsers : "Ilimitado"}</td>
                 <td className="px-4 py-2">
                   <span
                     className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -198,6 +234,17 @@ export const Plans = () => {
                   onChange={(e) => setForm({ ...form, users: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="Ex: 10 ou Ilimitado"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Duração (Dias)</label>
+                <input
+                  type="number"
+                  value={form.durationDays}
+                  onChange={(e) => setForm({ ...form, durationDays: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="Ex: 30"
+                  min="1"
                 />
               </div>
               <div>

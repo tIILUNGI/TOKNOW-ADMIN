@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Shield, ChevronRight, Activity, BarChart2, CreditCard, Users } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 
+import { loginAdmin } from "../lib/api";
+
 interface LoginPageProps {
   onLoginSuccess: () => void;
 }
@@ -12,17 +14,19 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      if (email && password) {
-        onLoginSuccess();
-      } else {
-        setLoading(false);
-      }
-    }, 800);
+    setError("");
+    try {
+      await loginAdmin(email, password);
+      onLoginSuccess();
+    } catch (err: any) {
+      setError("Credenciais inválidas. Tente novamente.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,6 +59,11 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
 
           <div className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
             <form onSubmit={handleEmailLogin} className="space-y-5">
+              {error && (
+                <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">
+                  {error}
+                </div>
+              )}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 block">
                   E-mail

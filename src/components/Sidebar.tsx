@@ -6,6 +6,7 @@ import {
   Activity,
   FileCheck,
   LogOut,
+  Layers,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { NavLink } from "react-router-dom";
@@ -21,7 +22,8 @@ export const Sidebar = ({ isOpen, setIsOpen, onLogout }: SidebarProps) => {
   const menuItems = [
     { icon: LayoutDashboard, label: "Painel Executivo", path: "/" },
     { icon: Users, label: "Utilizadores e Acessos", path: "/users" },
-    { icon: CreditCard, label: "Planos e Subscrições", path: "/plans" },
+    { icon: CreditCard, label: "Subscrições de Clientes", path: "/billing" },
+    { icon: Layers, label: "Planos de Subscrição", path: "/plans" },
     { icon: Activity, label: "Monitorização", path: "/health" },
     { icon: FileCheck, label: "Avaliações e Due Diligence", path: "/evaluations" },
   ];

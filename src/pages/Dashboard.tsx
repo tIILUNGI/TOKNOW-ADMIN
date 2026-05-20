@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Users,
@@ -8,36 +9,57 @@ import {
   TrendingUp,
   Server,
 } from "lucide-react";
+import { adminFetch } from "../lib/api";
+
+interface DashboardStats {
+  totalUsers: number;
+  totalPlans: number;
+  totalEvaluations: number;
+  pendingEvaluations: number;
+  mrr: number;
+}
 
 export const Dashboard = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+
+  useEffect(() => {
+    adminFetch<DashboardStats>("/admin/dashboard/stats")
+      .then(setStats)
+      .catch((err) => console.error("Error fetching stats", err));
+  }, []);
+
+  const formatKz = (value: number) => {
+    if (value >= 1000000) return `Kz ${(value / 1000000).toFixed(1)}M`;
+    return `Kz ${value.toLocaleString("pt-AO")}`;
+  };
 
   const topStats = [
     {
       title: "Utilizadores Ativos",
-      total: "2.405",
+      total: stats?.totalUsers.toString() || "...",
       subtitle: "Perfis ativos na plataforma",
       icon: Users,
       path: "/users",
     },
     {
       title: "MRR Atual",
-      total: "Kz45.2M",
-      subtitle: "Crescimento de 12% este mês",
+      total: stats ? formatKz(stats.mrr) : "...",
+      subtitle: "Receita Recorrente Mensal",
       icon: TrendingUp,
       path: "/plans",
     },
     {
       title: "System Health",
-      total: "99.9%",
-      subtitle: "APIs e Base de Dados estáveis",
+      total: "OK",
+      subtitle: "APIs e BD Operacionais",
       icon: Server,
       path: "/health",
     },
     {
-      title: "Avaliações KYC / 360",
-      total: "128",
-      subtitle: "Auditorias pendentes de análise",
+      title: "Avaliações",
+      total: stats?.totalEvaluations.toString() || "...",
+      subtitle: "Auditorias geradas",
       icon: FileCheck,
       path: "/evaluations",
     },
@@ -47,9 +69,9 @@ export const Dashboard = () => {
     {
       title: "Gestão de Utilizadores",
       desc: "Controlar papéis, permissões e status de todos os perfis ativos na plataforma.",
-      total: 2405,
-      pendente: 42,
-      ativo: 2363,
+      total: stats?.totalUsers || 0,
+      pendente: 0,
+      ativo: stats?.totalUsers || 0,
       icon: Users,
       action: "Gerir Acessos",
       path: "/users",
@@ -57,9 +79,9 @@ export const Dashboard = () => {
     {
       title: "Planos e Subscrições",
       desc: "Criar e editar assinaturas (Básico, Pro, Enterprise) e acompanhar métricas.",
-      total: 3,
-      pendente: 12,
-      ativo: 840,
+      total: stats?.totalPlans || 0,
+      pendente: 0,
+      ativo: stats?.totalPlans || 0,
       icon: CreditCard,
       action: "Configurar Planos",
       path: "/plans",
@@ -77,9 +99,9 @@ export const Dashboard = () => {
     {
       title: "Avaliações e Due Diligence",
       desc: "Auditar o progresso dos módulos de Avaliação KYC/KYS da aplicação.",
-      total: 450,
-      pendente: 128,
-      ativo: 322,
+      total: stats?.totalEvaluations || 0,
+      pendente: stats?.pendingEvaluations || 0,
+      ativo: (stats?.totalEvaluations || 0) - (stats?.pendingEvaluations || 0),
       icon: FileCheck,
       action: "Acompanhar Auditorias",
       path: "/evaluations",
@@ -143,7 +165,7 @@ export const Dashboard = () => {
                   </div>
                   <div>
                     <p className="text-lg font-bold text-amber-500 leading-none">{mod.pendente}</p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-1">Pendente/Latência</p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-1">Pendente</p>
                   </div>
                   <div>
                     <p className="text-lg font-bold text-emerald-500 leading-none">{mod.ativo}</p>
@@ -152,15 +174,11 @@ export const Dashboard = () => {
                 </div>
               </div>
               <div className="p-4 pt-0">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(mod.path);
-                  }}
-                  className="w-full py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-700 transition-colors flex items-center justify-center gap-2 pointer-events-none"
+                <div
+                  className="w-full py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 group-hover:bg-slate-50 group-hover:text-blue-700 transition-colors flex items-center justify-center gap-2"
                 >
                   {mod.action} <ChevronRight className="size-4 text-slate-400" />
-                </button>
+                </div>
               </div>
             </button>
           ))}
@@ -169,3 +187,4 @@ export const Dashboard = () => {
     </div>
   );
 };
+

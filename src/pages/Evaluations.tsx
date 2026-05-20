@@ -1,30 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileCheck, Search, Eye, X, Clock, Send, CheckCircle2, AlertCircle } from "lucide-react";
+import { adminFetch } from "../lib/api";
 
 interface EvaluationType {
-  id: string;
-  entity: string;
-  type: string;
-  progress: number;
+  id: number;
+  token: string;
+  recipient_name: string;
+  employee_name: string;
+  percentage: number;
+  classification: string;
   status: string;
-  date: string;
+  created_at?: string;
 }
 
 export const Evaluations = () => {
-  const [evaluations, setEvaluations] = useState<EvaluationType[]>([
-    { id: "EV-2041", entity: "TechCorp Lda.", type: "Avaliação 360º", progress: 100, status: "Concluído", date: "18 Mai 2026" },
-    { id: "EV-2042", entity: "Global Logistics", type: "Due Diligence (KYC)", progress: 45, status: "Em Progresso", date: "19 Mai 2026" },
-    { id: "EV-2043", entity: "Retail Group SA", type: "Auditoria Interna", progress: 0, status: "Pendente", date: "20 Mai 2026" },
-    { id: "EV-2044", entity: "FinTech Solutions", type: "Due Diligence (KYC)", progress: 100, status: "Revisão", date: "17 Mai 2026" },
-  ]);
+  const [evaluations, setEvaluations] = useState<EvaluationType[]>([]);
   const [search, setSearch] = useState("");
   const [selectedEval, setSelectedEval] = useState<EvaluationType | null>(null);
   const [showDetail, setShowDetail] = useState(false);
 
+  const fetchEvaluations = async () => {
+    try {
+      const data = await adminFetch<EvaluationType[]>("/collaboration/360/links");
+      setEvaluations(data);
+    } catch (err) {
+      console.error("Erro ao carregar avaliações", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvaluations();
+  }, []);
+
   const filtered = evaluations.filter(
     (ev) =>
-      ev.entity.toLowerCase().includes(search.toLowerCase()) ||
-      ev.id.toLowerCase().includes(search.toLowerCase())
+      (ev.employee_name && ev.employee_name.toLowerCase().includes(search.toLowerCase())) ||
+      (ev.recipient_name && ev.recipient_name.toLowerCase().includes(search.toLowerCase())) ||
+      (ev.token && ev.token.toLowerCase().includes(search.toLowerCase()))
   );
 
   const openDetail = (ev: EvaluationType) => {
@@ -37,26 +49,13 @@ export const Evaluations = () => {
     setSelectedEval(null);
   };
 
-  const advanceStatus = (id: string) => {
-    const flow = ["Pendente", "Em Progresso", "Concluído", "Revisão"];
-    setEvaluations(
-      evaluations.map((ev) => {
-        if (ev.id !== id) return ev;
-        const idx = flow.indexOf(ev.status);
-        const next = idx < flow.length - 1 ? flow[idx + 1] : ev.status;
-        const progressMap: Record<string, number> = { Pendente: 0, "Em Progresso": 45, Concluído: 100, Revisão: 100 };
-        return { ...ev, status: next, progress: progressMap[next] ?? ev.progress };
-      })
-    );
-  };
-
   const statusBadge = (status: string) => {
-    switch (status) {
-      case "Concluído":
+    switch (status?.toLowerCase()) {
+      case "concluded":
         return "bg-emerald-50 text-emerald-700 border border-emerald-200";
-      case "Em Progresso":
+      case "pending":
         return "bg-blue-50 text-blue-700 border border-blue-200";
-      case "Revisão":
+      case "review":
         return "bg-purple-50 text-purple-700 border border-purple-200";
       default:
         return "bg-slate-100 text-slate-600 border border-slate-200";
@@ -64,16 +63,30 @@ export const Evaluations = () => {
   };
 
   const statusIcon = (status: string) => {
-    switch (status) {
-      case "Concluído":
+    switch (status?.toLowerCase()) {
+      case "concluded":
         return <CheckCircle2 className="w-4 h-4" />;
-      case "Em Progresso":
+      case "pending":
         return <Clock className="w-4 h-4" />;
-      case "Revisão":
+      case "review":
         return <AlertCircle className="w-4 h-4" />;
       default:
         return <FileCheck className="w-4 h-4" />;
     }
+  };
+
+  const displayStatus = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "concluded": return "Concluído";
+      case "pending": return "Pendente";
+      case "review": return "Revisão";
+      default: return status || "Pendente";
+    }
+  };
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "N/D";
+    return new Date(dateStr).toLocaleDateString("pt-AO", { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   return (
@@ -104,9 +117,9 @@ export const Evaluations = () => {
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4">ID & Entidade</th>
-                <th className="px-6 py-4">Tipo de Avaliação</th>
-                <th className="px-6 py-4 w-48">Progresso</th>
+                <th className="px-6 py-4">ID & Avaliado</th>
+                <th className="px-6 py-4">Avaliador (Par)</th>
+                <th className="px-6 py-4 w-48">Desempenho</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Ação</th>
               </tr>
@@ -115,27 +128,27 @@ export const Evaluations = () => {
               {filtered.map((ev) => (
                 <tr key={ev.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="px-6 py-4">
-                    <p className="font-bold text-slate-800">{ev.entity}</p>
-                    <p className="text-slate-500 text-xs font-mono mt-0.5">{ev.id} • {ev.date}</p>
+                    <p className="font-bold text-slate-800">{ev.employee_name || "N/D"}</p>
+                    <p className="text-slate-500 text-xs font-mono mt-0.5">{ev.token?.substring(0, 8)}... • {formatDate(ev.created_at)}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-slate-700">{ev.type}</span>
+                    <span className="text-slate-700">{ev.recipient_name || "N/D"}</span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <div className="w-full bg-slate-100 rounded-full h-1.5 flex-1">
                         <div
-                          className={"h-1.5 rounded-full " + (ev.progress === 100 ? "bg-emerald-500" : "bg-blue-500")}
-                          style={{ width: ev.progress + "%" }}
+                          className={"h-1.5 rounded-full " + ((ev.percentage || 0) >= 80 ? "bg-emerald-500" : "bg-blue-500")}
+                          style={{ width: (ev.percentage || 0) + "%" }}
                         />
                       </div>
-                      <span className="text-xs text-slate-500 font-medium w-8">{ev.progress}%</span>
+                      <span className="text-xs text-slate-500 font-medium w-8">{Math.round(ev.percentage || 0)}%</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium items-center gap-1 ${statusBadge(ev.status)}`}>
                       {statusIcon(ev.status)}
-                      {ev.status}
+                      {displayStatus(ev.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -146,12 +159,6 @@ export const Evaluations = () => {
                       >
                         <Eye className="w-3.5 h-3.5" /> Analisar
                       </button>
-                      <button
-                        onClick={() => advanceStatus(ev.id)}
-                        className="text-slate-600 hover:text-emerald-600 transition-colors px-3 py-1.5 rounded-md hover:bg-emerald-50 text-xs font-medium border border-slate-200 flex items-center gap-1.5"
-                      >
-                        <Send className="w-3.5 h-3.5" /> Avançar
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -159,7 +166,7 @@ export const Evaluations = () => {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-6 py-10 text-center text-sm text-slate-400">
-                    Nenhuma avaliação encontrada.
+                    Nenhuma avaliação encontrada no backend.
                   </td>
                 </tr>
               )}
@@ -173,56 +180,51 @@ export const Evaluations = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">{selectedEval.entity}</h2>
+              <h2 className="text-lg font-bold text-slate-900">{selectedEval.employee_name}</h2>
               <button onClick={closeDetail} className="text-slate-400 hover:text-slate-600">
                 <X className="size-5" />
               </button>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-slate-500 text-xs mb-0.5">ID</p>
-                <p className="font-mono text-slate-800">{selectedEval.id}</p>
+                <p className="text-slate-500 text-xs mb-0.5">ID / Token</p>
+                <p className="font-mono text-slate-800">{selectedEval.token}</p>
               </div>
               <div>
-                <p className="text-slate-500 text-xs mb-0.5">Data</p>
-                <p className="text-slate-800">{selectedEval.date}</p>
+                <p className="text-slate-500 text-xs mb-0.5">Data de Criação</p>
+                <p className="text-slate-800">{formatDate(selectedEval.created_at)}</p>
               </div>
               <div>
-                <p className="text-slate-500 text-xs mb-0.5">Tipo</p>
-                <p className="text-slate-800">{selectedEval.type}</p>
+                <p className="text-slate-500 text-xs mb-0.5">Avaliador Associado</p>
+                <p className="text-slate-800">{selectedEval.recipient_name || "N/D"}</p>
               </div>
               <div>
                 <p className="text-slate-500 text-xs mb-0.5">Status</p>
                 <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium items-center gap-1 ${statusBadge(selectedEval.status)}`}>
                   {statusIcon(selectedEval.status)}
-                  {selectedEval.status}
+                  {displayStatus(selectedEval.status)}
                 </span>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs mb-0.5">Classificação Final</p>
+                <p className="text-slate-800 font-semibold">{selectedEval.classification || "N/A"}</p>
               </div>
             </div>
             <div>
-              <p className="text-slate-500 text-xs mb-1">Progresso</p>
+              <p className="text-slate-500 text-xs mb-1">Resultado (Desempenho)</p>
               <div className="flex items-center gap-3">
                 <div className="w-full bg-slate-100 rounded-full h-2">
                   <div
-                    className={"h-2 rounded-full " + (selectedEval.progress === 100 ? "bg-emerald-500" : "bg-blue-500")}
-                    style={{ width: selectedEval.progress + "%" }}
+                    className={"h-2 rounded-full " + ((selectedEval.percentage || 0) >= 80 ? "bg-emerald-500" : "bg-blue-500")}
+                    style={{ width: (selectedEval.percentage || 0) + "%" }}
                   />
                 </div>
-                <span className="text-sm font-medium text-slate-800 w-10">{selectedEval.progress}%</span>
+                <span className="text-sm font-medium text-slate-800 w-10">{Math.round(selectedEval.percentage || 0)}%</span>
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button onClick={closeDetail} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg">
                 Fechar
-              </button>
-              <button
-                onClick={() => {
-                  advanceStatus(selectedEval.id);
-                  closeDetail();
-                }}
-                className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1"
-              >
-                <Send className="w-3.5 h-3.5" /> Avançar Status
               </button>
             </div>
           </div>
