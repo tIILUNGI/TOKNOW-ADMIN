@@ -15,7 +15,8 @@ import { LoginPage } from "./pages/Login";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() =>
-    localStorage.getItem("toknow_auth") === "true"
+    localStorage.getItem("toknow_auth") === "true" &&
+    Boolean(localStorage.getItem("toknow_token"))
   );
 
   const handleLogin = useCallback(() => {
@@ -24,6 +25,7 @@ export default function App() {
   }, []);
 
   const handleLogout = useCallback(() => {
+    localStorage.removeItem("toknow_token");
     localStorage.removeItem("toknow_auth");
     setIsAuthenticated(false);
   }, []);
