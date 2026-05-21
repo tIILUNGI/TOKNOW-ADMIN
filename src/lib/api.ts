@@ -1,4 +1,4 @@
-const API_BASE = "/api";
+const API_BASE = "https://api.toknow.ilungi.digital/api";
 
 interface FetchOptions extends RequestInit {
   noAuth?: boolean;
